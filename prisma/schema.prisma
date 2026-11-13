@@ -1,0 +1,859 @@
+// TAB Consultants — Practice Management & Compliance System
+// Timestamps are stored in UTC (timestamptz). Calendar dates that have no time
+// component (due dates, period ends, holidays) are stored as DATE and are
+// interpreted in Asia/Dubai. See ASSUMPTIONS.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── Users, roles, permissions ─────────────────────────
+
+enum RoleKey {
+  MANAGING_PARTNER
+  PARTNER
+  MANAGER
+  SENIOR_ACCOUNTANT
+  ACCOUNTANT
+  TAX_CONSULTANT
+  AUDIT_STAFF
+  BUSINESS_DEVELOPMENT
+  ADMINISTRATOR
+  READ_ONLY
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  key         RoleKey          @unique
+  name        String
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique // e.g. "clients:edit:assigned"
+  description String
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permission")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  roleId            String
+  role              Role      @relation(fields: [roleId], references: [id])
+  managerId         String?
+  manager           User?     @relation("UserManager", fields: [managerId], references: [id])
+  reports           User[]    @relation("UserManager")
+  passwordHash      String?
+  totpSecret        String?
+  totpEnabled       Boolean   @default(false)
+  entraObjectId     String?   @unique
+  failedLoginCount  Int       @default(0)
+  lockedUntil       DateTime? @db.Timestamptz
+  lastLoginAt       DateTime? @db.Timestamptz
+  isActive          Boolean   @default(true)
+  onLeaveFrom       DateTime? @db.Date
+  onLeaveTo         DateTime? @db.Date
+  weeklyCapacityHrs Int       @default(40)
+  createdAt         DateTime  @default(now()) @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @db.Timestamptz
+
+  partnerEngagements  ServiceEngagement[] @relation("EngPartner")
+  managerEngagements  ServiceEngagement[] @relation("EngManager")
+  preparerEngagements ServiceEngagement[] @relation("EngPreparer")
+  preparedObligations Obligation[]        @relation("OblPreparer")
+  reviewedObligations Obligation[]        @relation("OblReviewer")
+  ownedLeads          Lead[]
+  tasks               Task[]              @relation("TaskAssignee")
+  statusChanges       ObligationStatusHistory[]
+  sessions            Session[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @db.Timestamptz
+  expiresAt DateTime @db.Timestamptz
+  ip        String?
+  revokedAt DateTime? @db.Timestamptz
+
+  @@index([userId])
+  @@map("session")
+}
+
+// ───────────────────────── Clients ─────────────────────────
+
+enum ClientStatus {
+  PROSPECT
+  ACTIVE
+  ON_HOLD
+  ARCHIVED
+}
+
+enum EntityType {
+  LLC
+  FREE_ZONE_COMPANY
+  FREE_ZONE_ESTABLISHMENT
+  SOLE_ESTABLISHMENT
+  BRANCH
+  CIVIL_COMPANY
+  PUBLIC_JSC
+  PRIVATE_JSC
+  NATURAL_PERSON
+  OTHER
+}
+
+model Client {
+  id                 String       @id @default(cuid())
+  clientCode         String       @unique
+  legalName          String
+  tradeName          String?
+  entityType         EntityType   @default(LLC)
+  licenceNumber      String?
+  licenceAuthority   String?
+  licenceExpiry      DateTime?    @db.Date
+  emirate            String?
+  jurisdiction       String       @default("AE")
+  industry           String?
+  status             ClientStatus @default(ACTIVE)
+  /// Month (1-12) and day of the financial year-end. Null = unknown; no CT obligations are generated.
+  fyEndMonth         Int?
+  fyEndDay           Int?
+  relationshipPartnerId String?
+  stopWork           Boolean      @default(false)
+  stopWorkReason     String?
+  notes              String?
+  searchText         String       @default("") // denormalised for full-text search, maintained by the app
+  createdAt          DateTime     @default(now()) @db.Timestamptz
+  updatedAt          DateTime     @updatedAt @db.Timestamptz
+  deletedAt          DateTime?    @db.Timestamptz
+
+  taxProfile     ClientTaxProfile?
+  contacts       Contact[]
+  engagements    ServiceEngagement[]
+  obligations    Obligation[]
+  communications Communication[]
+  tasks          Task[]
+  documents      Document[]
+  invoices       Invoice[]
+  receipts       Receipt[]
+  convertedFrom  Lead?
+
+  @@index([status, deletedAt])
+  @@index([legalName])
+  @@index([fyEndMonth])
+  @@index([emirate])
+  @@map("client")
+}
+
+enum FilingFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  NOT_REGISTERED
+}
+
+model ClientTaxProfile {
+  id                 String           @id @default(cuid())
+  clientId           String           @unique
+  client             Client           @relation(fields: [clientId], references: [id])
+  vatTrn             String?          @unique
+  vatEffectiveDate   DateTime?        @db.Date
+  vatFrequency       FilingFrequency  @default(NOT_REGISTERED)
+  /// First day of any one of the client's VAT tax periods. Periods roll from here; never assumed to be a calendar quarter.
+  vatPeriodAnchor    DateTime?        @db.Date
+  ctRegistrationNo   String?          @unique
+  ctRegistered       Boolean          @default(false)
+  ctFirstPeriodStart DateTime?        @db.Date
+  freeZone           Boolean          @default(false)
+  qfzpStatus         Boolean          @default(false)
+  smallBusinessRelief Boolean         @default(false)
+  taxGroupName       String?
+  updatedAt          DateTime         @updatedAt @db.Timestamptz
+
+  @@index([vatFrequency])
+  @@map("client_tax_profile")
+}
+
+model Contact {
+  id                   String   @id @default(cuid())
+  clientId             String
+  client               Client   @relation(fields: [clientId], references: [id])
+  name                 String
+  designation          String?
+  email                String?
+  mobile               String?
+  isPrimary            Boolean  @default(false)
+  isAccounts           Boolean  @default(false)
+  isAuthorisedSignatory Boolean @default(false)
+  createdAt            DateTime @default(now()) @db.Timestamptz
+  deletedAt            DateTime? @db.Timestamptz
+
+  @@index([clientId])
+  @@index([email])
+  @@map("contact")
+}
+
+enum ServiceLine {
+  VAT
+  CORPORATE_TAX
+  BOOKKEEPING
+  AUDIT
+  TRANSFER_PRICING
+  TAX_ADVISORY
+  BUSINESS_SETUP
+  OUTSOURCED_CFO
+}
+
+enum BillingFrequency {
+  ONE_OFF
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+model ServiceEngagement {
+  id               String           @id @default(cuid())
+  clientId         String
+  client           Client           @relation(fields: [clientId], references: [id])
+  serviceLine      ServiceLine
+  fee              Decimal          @db.Decimal(14, 2)
+  currency         String           @default("AED")
+  billingFrequency BillingFrequency @default(ANNUAL)
+  contractStart    DateTime         @db.Date
+  contractEnd      DateTime?        @db.Date
+  partnerId        String?
+  partner          User?            @relation("EngPartner", fields: [partnerId], references: [id])
+  managerId        String?
+  manager          User?            @relation("EngManager", fields: [managerId], references: [id])
+  preparerId       String?
+  preparer         User?            @relation("EngPreparer", fields: [preparerId], references: [id])
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now()) @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @db.Timestamptz
+
+  obligations Obligation[]
+  tasks       Task[]
+
+  @@index([clientId])
+  @@index([managerId])
+  @@index([partnerId])
+  @@index([preparerId])
+  @@map("service_engagement")
+}
+
+// ───────────────────────── Deadline engine ─────────────────────────
+
+enum ObligationType {
+  VAT_RETURN
+  CT_RETURN
+  TRADE_LICENCE_RENEWAL
+  ENGAGEMENT_RENEWAL
+  AUDIT_REPORT
+  TP_LOCAL_FILE
+  TAX_PAYMENT
+  DOCUMENT_EXPIRY
+  OTHER
+}
+
+enum RuleBasis {
+  DAYS_AFTER_PERIOD_END
+  MONTHS_AFTER_PERIOD_END
+  ON_SOURCE_DATE // e.g. licence expiry, contract end
+}
+
+model DeadlineRule {
+  id               String         @id @default(cuid())
+  code             String         // stable identifier, e.g. "VAT_RETURN_STD"
+  version          Int
+  jurisdiction     String         @default("AE")
+  obligationType   ObligationType
+  name             String
+  basis            RuleBasis
+  offsetDays       Int            @default(0)
+  offsetMonths     Int            @default(0)
+  /// Working days before the statutory date for the internal preparation and review deadlines.
+  prepLeadWorkingDays   Int       @default(10)
+  reviewLeadWorkingDays Int       @default(5)
+  effectiveFrom    DateTime       @db.Date
+  effectiveTo      DateTime?      @db.Date
+  notes            String?
+  isConfirmed      Boolean        @default(false) // confirmed by a qualified person
+  confirmedById    String?
+  confirmedAt      DateTime?      @db.Timestamptz
+  createdAt        DateTime       @default(now()) @db.Timestamptz
+
+  obligations Obligation[]
+
+  @@unique([code, version])
+  @@index([obligationType, jurisdiction, effectiveFrom])
+  @@map("deadline_rule")
+}
+
+enum ObligationStatus {
+  UPCOMING
+  DOCUMENTS_REQUESTED
+  DOCUMENTS_RECEIVED
+  IN_PREPARATION
+  PENDING_INTERNAL_REVIEW
+  PENDING_CLIENT_APPROVAL
+  READY_FOR_SUBMISSION
+  SUBMITTED
+  PAYMENT_PENDING
+  COMPLETED
+  ON_HOLD
+}
+
+enum PaymentStatus {
+  NOT_APPLICABLE
+  UNPAID
+  PAID
+  WAIVED
+}
+
+model Obligation {
+  id                  String           @id @default(cuid())
+  clientId            String
+  client              Client           @relation(fields: [clientId], references: [id])
+  engagementId        String?
+  engagement          ServiceEngagement? @relation(fields: [engagementId], references: [id])
+  type                ObligationType
+  title               String
+  periodStart         DateTime         @db.Date
+  periodEnd           DateTime         @db.Date
+  statutoryDueDate    DateTime         @db.Date
+  /// Statutory date moved to the previous working day; what the firm works to.
+  internalTargetDate  DateTime         @db.Date
+  prepDeadline        DateTime         @db.Date
+  reviewDeadline      DateTime         @db.Date
+  status              ObligationStatus @default(UPCOMING)
+  onHoldReason        String?
+  preparerId          String?
+  preparer            User?            @relation("OblPreparer", fields: [preparerId], references: [id])
+  reviewerId          String?
+  reviewer            User?            @relation("OblReviewer", fields: [reviewerId], references: [id])
+  ruleId              String?
+  rule                DeadlineRule?    @relation(fields: [ruleId], references: [id])
+  ruleVersion         Int?
+  isManualOverride    Boolean          @default(false)
+  needsReview         Boolean          @default(false)
+  needsReviewReason   String?
+  reviewerConfirmed   Boolean          @default(false)
+  submissionReference String?
+  submissionDate      DateTime?        @db.Timestamptz
+  amountPayable       Decimal?         @db.Decimal(14, 2)
+  paymentStatus       PaymentStatus    @default(NOT_APPLICABLE)
+  waiverReason        String?
+  lastChangedById     String?
+  createdAt           DateTime         @default(now()) @db.Timestamptz
+  updatedAt           DateTime         @updatedAt @db.Timestamptz
+  deletedAt           DateTime?        @db.Timestamptz
+
+  history       ObligationStatusHistory[]
+  reminderLogs  ReminderLog[]
+  tasks         Task[]
+  documents     Document[]
+  communications Communication[]
+
+  // Uniqueness of (client, type, period) is enforced by a partial unique index
+  // (WHERE deleted_at IS NULL) in the migration SQL.
+  @@index([statutoryDueDate, status])
+  @@index([preparerId, status])
+  @@index([reviewerId, status])
+  @@index([clientId, type])
+  @@index([status, internalTargetDate])
+  @@map("obligation")
+}
+
+model ObligationStatusHistory {
+  id           String            @id @default(cuid())
+  obligationId String
+  obligation   Obligation        @relation(fields: [obligationId], references: [id])
+  fromStatus   ObligationStatus?
+  toStatus     ObligationStatus
+  changedById  String?
+  changedBy    User?             @relation(fields: [changedById], references: [id])
+  changedAt    DateTime          @default(now()) @db.Timestamptz
+  note         String?
+
+  @@index([obligationId, changedAt])
+  @@map("obligation_status_history")
+}
+
+/// Which obligation statuses are switched on for a type (Section 6: stages switched on per type).
+model ObligationTypeSetting {
+  type            ObligationType @id
+  enabledStatuses ObligationStatus[]
+  prepLeadWorkingDays   Int      @default(10)
+  reviewLeadWorkingDays Int      @default(5)
+  remindersEnabled Boolean       @default(true)
+
+  @@map("obligation_type_setting")
+}
+
+model Holiday {
+  id           String   @id @default(cuid())
+  jurisdiction String   @default("AE")
+  date         DateTime @db.Date
+  name         String
+  isConfirmed  Boolean  @default(true) // false for moon-sighting estimates
+
+  @@unique([jurisdiction, date])
+  @@map("holiday")
+}
+
+// ───────────────────────── Reminders ─────────────────────────
+
+enum ReminderTrack {
+  INTERNAL_PREPARER
+  INTERNAL_REVIEWER
+  MANAGER_ESCALATION
+  PARTNER_ESCALATION
+  CLIENT_DOCUMENT_REQUEST
+  CLIENT_APPROVAL_REQUEST
+  PAYMENT_FOLLOW_UP
+  LEAD_FOLLOW_UP
+  TASK_ESCALATION
+  DAILY_DIGEST
+  WEEKLY_PARTNER_SUMMARY
+}
+
+enum ReminderTrigger {
+  BEFORE_STATUTORY      // offsets in days before the statutory date (0 = on the day)
+  OVERDUE_REPEAT        // every N days while overdue
+  AT_PREP_DEADLINE      // escalation when short of Ready for Submission
+  BEFORE_STATUTORY_OPEN // escalation when still open N days before statutory date
+}
+
+model ReminderRule {
+  id              String          @id @default(cuid())
+  name            String
+  obligationType  ObligationType?  // null = all types
+  track           ReminderTrack
+  trigger         ReminderTrigger
+  offsetsDays     Int[]           // e.g. [30,15,7,3,1,0]
+  repeatEveryDays Int?
+  templateKey     String
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now()) @db.Timestamptz
+
+  logs ReminderLog[]
+
+  @@map("reminder_rule")
+}
+
+enum DeliveryStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED_PAUSED
+  REDIRECTED_TEST
+}
+
+model ReminderLog {
+  id             String         @id @default(cuid())
+  obligationId   String?
+  obligation     Obligation?    @relation(fields: [obligationId], references: [id])
+  ruleId         String?
+  rule           ReminderRule?  @relation(fields: [ruleId], references: [id])
+  track          ReminderTrack
+  recipientEmail String
+  recipientUserId String?
+  channel        String         @default("email")
+  templateKey    String
+  subject        String
+  scheduledFor   DateTime       @db.Date
+  sentAt         DateTime?      @db.Timestamptz
+  status         DeliveryStatus @default(QUEUED)
+  error          String?
+  attempts       Int            @default(0)
+  /// obligation|rule|recipient|scheduledDate — the database rejects a second row with the same key.
+  dedupeKey      String         @unique
+  createdAt      DateTime       @default(now()) @db.Timestamptz
+
+  @@index([obligationId])
+  @@index([status, createdAt])
+  @@map("reminder_log")
+}
+
+model EmailTemplate {
+  key       String   @id
+  name      String
+  subject   String
+  body      String   // plain text with {{merge_fields}}
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@map("email_template")
+}
+
+// ───────────────────────── Leads, communication, tasks ─────────────────────────
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE_FORM
+  REFERRAL
+  BNI
+  LINKEDIN
+  WALK_IN
+  FREE_ZONE_REFERRAL
+  EXISTING_CLIENT
+  OTHER
+}
+
+model Lead {
+  id                String       @id @default(cuid())
+  name              String
+  company           String?
+  email             String?
+  mobile            String?
+  country           String?
+  source            LeadSource
+  serviceInterest   ServiceLine[]
+  estimatedAnnualFee Decimal?    @db.Decimal(14, 2)
+  stage             LeadStage    @default(NEW)
+  lostReason        String?
+  ownerId           String
+  owner             User         @relation(fields: [ownerId], references: [id])
+  nextActionDate    DateTime     @db.Date
+  nextAction        String?
+  firstContactAt    DateTime?    @db.Timestamptz
+  notes             String?
+  convertedClientId String?      @unique
+  convertedClient   Client?      @relation(fields: [convertedClientId], references: [id])
+  createdAt         DateTime     @default(now()) @db.Timestamptz
+  updatedAt         DateTime     @updatedAt @db.Timestamptz
+  deletedAt         DateTime?    @db.Timestamptz
+
+  communications Communication[]
+
+  @@index([ownerId, stage])
+  @@index([nextActionDate])
+  @@map("lead")
+}
+
+model LostReason {
+  id    String @id @default(cuid())
+  label String @unique
+
+  @@map("lost_reason")
+}
+
+enum CommChannel {
+  EMAIL
+  PHONE
+  WHATSAPP
+  MEETING
+  SITE_VISIT
+}
+
+enum CommDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+model Communication {
+  id            String        @id @default(cuid())
+  clientId      String?
+  client        Client?       @relation(fields: [clientId], references: [id])
+  leadId        String?
+  lead          Lead?         @relation(fields: [leadId], references: [id])
+  channel       CommChannel
+  direction     CommDirection
+  subject       String
+  summary       String?
+  participants  String[]
+  occurredAt    DateTime      @db.Timestamptz
+  obligationId  String?
+  obligation    Obligation?   @relation(fields: [obligationId], references: [id])
+  invoiceId     String?
+  invoice       Invoice?      @relation(fields: [invoiceId], references: [id])
+  externalId    String?       @unique // Microsoft Graph message id
+  loggedById    String?
+  createdAt     DateTime      @default(now()) @db.Timestamptz
+
+  @@index([clientId, occurredAt])
+  @@index([leadId, occurredAt])
+  @@map("communication")
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Task {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  clientId      String?
+  client        Client?    @relation(fields: [clientId], references: [id])
+  obligationId  String?
+  obligation    Obligation? @relation(fields: [obligationId], references: [id])
+  engagementId  String?
+  engagement    ServiceEngagement? @relation(fields: [engagementId], references: [id])
+  assigneeId    String?
+  assignee      User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  priority      Priority   @default(NORMAL)
+  dueDate       DateTime?  @db.Date
+  status        TaskStatus @default(OPEN)
+  recurrence    String?    // RRULE-like: "MONTHLY:1" etc.
+  blockedById   String?
+  blockedBy     Task?      @relation("TaskBlock", fields: [blockedById], references: [id])
+  blocks        Task[]     @relation("TaskBlock")
+  checklist     Json       @default("[]")
+  createdAt     DateTime   @default(now()) @db.Timestamptz
+  updatedAt     DateTime   @updatedAt @db.Timestamptz
+
+  @@index([assigneeId, status])
+  @@index([clientId])
+  @@map("task")
+}
+
+// ───────────────────────── Documents ─────────────────────────
+
+enum DocumentType {
+  TRADE_LICENCE
+  CERT_OF_INCORPORATION
+  MOA
+  VAT_CERTIFICATE
+  CT_CERTIFICATE
+  ENGAGEMENT_LETTER
+  SIGNED_FINANCIAL_STATEMENTS
+  FILED_RETURN
+  SUBMISSION_ACK
+  BANK_LETTER
+  EMIRATES_ID
+  PASSPORT
+  OTHER
+}
+
+model Document {
+  id            String       @id @default(cuid())
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id])
+  obligationId  String?
+  obligation    Obligation?  @relation(fields: [obligationId], references: [id])
+  type          DocumentType
+  fileName      String
+  storageKey    String
+  mimeType      String
+  sizeBytes     Int
+  version       Int          @default(1)
+  previousId    String?
+  expiryDate    DateTime?    @db.Date
+  isSensitive   Boolean      @default(false) // Emirates ID / passport: restricted + view-logged
+  uploadedById  String?
+  uploadedAt    DateTime     @default(now()) @db.Timestamptz
+  deletedAt     DateTime?    @db.Timestamptz
+
+  @@index([clientId, type])
+  @@index([expiryDate])
+  @@map("document")
+}
+
+// ───────────────────────── Invoicing ─────────────────────────
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+model InvoiceSeries {
+  id         String @id @default(cuid())
+  prefix     String
+  year       Int
+  nextNumber Int    @default(1)
+
+  @@unique([prefix, year])
+  @@map("invoice_series")
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String?       @unique // assigned gaplessly at issue; drafts have none
+  isCreditNote   Boolean       @default(false)
+  originalInvoiceId String?
+  clientId       String
+  client         Client        @relation(fields: [clientId], references: [id])
+  invoiceDate    DateTime      @db.Date
+  dueDate        DateTime      @db.Date
+  currency       String        @default("AED")
+  fxRateToAed    Decimal       @default(1) @db.Decimal(14, 6)
+  subtotal       Decimal       @db.Decimal(14, 2)
+  vatAmount      Decimal       @db.Decimal(14, 2)
+  total          Decimal       @db.Decimal(14, 2)
+  amountPaid     Decimal       @default(0) @db.Decimal(14, 2)
+  status         InvoiceStatus @default(DRAFT)
+  cancelReason   String?
+  paymentTerms   String?
+  notes          String?
+  collectionOwnerId String?
+  nextFollowUpDate  DateTime?  @db.Date
+  createdAt      DateTime      @default(now()) @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @db.Timestamptz
+  deletedAt      DateTime?     @db.Timestamptz
+
+  lines          InvoiceLine[]
+  allocations    ReceiptAllocation[]
+  communications Communication[]
+
+  @@index([clientId, status])
+  @@index([dueDate, status])
+  @@map("invoice")
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  description String
+  serviceLine ServiceLine?
+  quantity    Decimal @db.Decimal(12, 2)
+  unitPrice   Decimal @db.Decimal(14, 2)
+  discount    Decimal @default(0) @db.Decimal(14, 2)
+  vatRate     Decimal @db.Decimal(5, 2)
+  vatAmount   Decimal @db.Decimal(14, 2)
+  lineTotal   Decimal @db.Decimal(14, 2)
+
+  @@map("invoice_line")
+}
+
+model VatRate {
+  id            String   @id @default(cuid())
+  code          String
+  rate          Decimal  @db.Decimal(5, 2)
+  effectiveFrom DateTime @db.Date
+  effectiveTo   DateTime? @db.Date
+
+  @@unique([code, effectiveFrom])
+  @@map("vat_rate")
+}
+
+model Receipt {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  receivedOn  DateTime @db.Date
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @default("AED")
+  method      String
+  reference   String?
+  unallocated Decimal  @default(0) @db.Decimal(14, 2) // payment on account
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  allocations ReceiptAllocation[]
+
+  @@map("receipt")
+}
+
+model ReceiptAllocation {
+  id        String  @id @default(cuid())
+  receiptId String
+  receipt   Receipt @relation(fields: [receiptId], references: [id])
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  amount    Decimal @db.Decimal(14, 2)
+
+  @@map("receipt_allocation")
+}
+
+// ───────────────────────── Audit and operations ─────────────────────────
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  at        DateTime @default(now()) @db.Timestamptz
+  userId    String?
+  action    String   // CREATE | UPDATE | DELETE | VIEW_SENSITIVE
+  tableName String
+  recordId  String
+  field     String?
+  oldValue  String?
+  newValue  String?
+  ip        String?
+
+  @@index([tableName, recordId])
+  @@index([userId, at])
+  @@index([at])
+  @@map("audit_log")
+}
+
+model JobRun {
+  id             String    @id @default(cuid())
+  jobName        String
+  startedAt      DateTime  @default(now()) @db.Timestamptz
+  finishedAt     DateTime? @db.Timestamptz
+  status         String    @default("RUNNING") // RUNNING | SUCCEEDED | FAILED
+  itemsProcessed Int       @default(0)
+  itemsCreated   Int       @default(0)
+  errorCount     Int       @default(0)
+  detail         Json?
+
+  @@index([jobName, startedAt])
+  @@map("job_run")
+}
+
+model ConnectorLog {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now()) @db.Timestamptz
+  connector  String   // "graph-mail", "graph-mail-sync", "lead-webhook", "entra-sso"
+  direction  String   // INBOUND | OUTBOUND
+  status     String   // OK | ERROR | DISABLED
+  detail     String?
+  recordType String?
+  recordId   String?
+
+  @@index([connector, at])
+  @@map("connector_log")
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@map("app_setting")
+}
