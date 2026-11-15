@@ -1,0 +1,281 @@
+<title>TAB PMS Operating Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: a left-hand contents rail on wide screens, single column on phones; dense reference pages, tables first. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1d2430; --muted: #5b6573; --line: #dfe4ea;
+  --brand: #43c6ae; --navy: #0c1e31; --accent: #159bb5; --accent-soft: #e3f3f6;
+  --warn: #a86400; --warn-bg: #fff4e0; --bad: #b3261e; --bad-bg: #fdecea; --good: #1e7a4c; --good-bg: #e6f5ec;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1620; --surface: #15202c; --fg: #e6eaf0; --muted: #9aa6b4; --line: #26333f;
+  --brand: #4fd3bb; --navy: #0a1725; --accent: #4cc0d6; --accent-soft: #10303a;
+  --warn: #f0b64a; --warn-bg: #3a2b0e; --bad: #ff8a80; --bad-bg: #3b1a17; --good: #6fd39a; --good-bg: #12301e; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1620; --surface: #15202c; --fg: #e6eaf0; --muted: #9aa6b4; --line: #26333f;
+  --brand: #4fd3bb; --navy: #0a1725; --accent: #4cc0d6; --accent-soft: #10303a;
+  --warn: #f0b64a; --warn-bg: #3a2b0e; --bad: #ff8a80; --bad-bg: #3b1a17; --good: #6fd39a; --good-bg: #12301e; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.55 var(--body); padding-block: 0 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+a { color: var(--accent) }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0 }
+h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.01em }
+h2 { font-size: 20px; margin-block: 40px 12px; padding-top: 12px; border-top: 2px solid var(--brand); scroll-margin-top: 16px }
+h3 { font-size: 15px; margin-block: 20px 6px }
+p { margin: 0 0 10px; max-width: 72ch }
+ul, ol { margin: 0 0 12px; padding-left: 22px; max-width: 72ch } li { margin-bottom: 4px }
+code { font: 12.5px var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 3px }
+pre { font: 12.5px/1.5 var(--mono); background: var(--navy); color: #d9f2ee; padding: 12px 14px; border-radius: 6px; overflow-x: auto; margin: 0 0 12px }
+pre code { background: none; color: inherit; padding: 0 }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 36px }
+@media (max-width: 860px) { .wrap { grid-template-columns: 1fr; gap: 0 } .rail { position: static !important; border: 0; padding: 0 } }
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; padding-top: 28px; font-size: 13px }
+.rail ol { list-style: none; padding: 0; margin: 0 } .rail li { margin: 0 } .rail a { display: block; padding: 4px 0; color: var(--muted); text-decoration: none } .rail a:hover { color: var(--fg) }
+.rail .k { font-family: var(--display); font-weight: 600; color: var(--fg); margin-bottom: 6px }
+header { padding-top: 28px }
+.eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px }
+.lede { color: var(--muted); font-size: 15px; max-width: 64ch; margin-top: 10px }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0 0 14px }
+th { text-align: left; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; font-size: 12px; letter-spacing: .02em }
+td { border-bottom: 1px solid var(--line); padding: 7px 8px; vertical-align: top }
+.tbl { overflow-x: auto; min-width: 0 }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; margin: 12px 0 }
+.note { border-left: 3px solid var(--warn); background: var(--warn-bg); color: var(--warn); padding: 10px 12px; border-radius: 0 4px 4px 0; margin: 12px 0; max-width: 72ch }
+.ok { border-left: 3px solid var(--good); background: var(--good-bg); color: var(--good); padding: 10px 12px; border-radius: 0 4px 4px 0; margin: 12px 0; max-width: 72ch }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11.5px; font-weight: 600; white-space: nowrap }
+.c-red { background: var(--bad-bg); color: var(--bad) } .c-amber { background: var(--warn-bg); color: var(--warn) } .c-green { background: var(--good-bg); color: var(--good) } .c-grey { background: var(--line); color: var(--muted) } .c-blue { background: var(--accent-soft); color: var(--accent) }
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 12px 0 }
+.status .card { margin: 0 } .status .card b { display: block; font-family: var(--display); font-size: 15px; margin-bottom: 4px }
+.kbd { font: 12px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface) }
+.flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 12px } .flow span { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; font-size: 12.5px } .flow i { color: var(--muted); font-style: normal }
+.check li { list-style: none; position: relative; padding-left: 26px } .check li::before { content: ""; position: absolute; left: 0; top: 3px; width: 15px; height: 15px; border: 1.5px solid var(--muted); border-radius: 3px }
+.check { padding-left: 0 }
+.who { font-weight: 600; color: var(--fg) }
+footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 12px }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Contents">
+  <div class="k">Contents</div>
+  <ol>
+    <li><a href="#status">1. Where things stand</a></li>
+    <li><a href="#open">2. Opening the app</a></li>
+    <li><a href="#roles">3. Who does what</a></li>
+    <li><a href="#day">4. The working day</a></li>
+    <li><a href="#obligations">5. Working a deadline</a></li>
+    <li><a href="#clients">6. Clients</a></li>
+    <li><a href="#leads">7. Enquiries and leads</a></li>
+    <li><a href="#email">8. Reminders and email</a></li>
+    <li><a href="#m365">9. Microsoft 365 connection</a></li>
+    <li><a href="#settings">10. Settings to review</a></li>
+    <li><a href="#golive">11. Go-live checklist</a></li>
+    <li><a href="#help">12. When something looks wrong</a></li>
+  </ol>
+</nav>
+
+<main>
+<header>
+  <div class="eyebrow">TAB Consultants · Practice Management &amp; Compliance System</div>
+  <h1>Operating guide</h1>
+  <p class="lede">How the firm runs its deadlines, clients and enquiries in the system. One obligation table, one reminder engine, one list everyone works from. Written for partners, managers, staff and the administrator who sets it up.</p>
+</header>
+
+<h2 id="status">1. Where things stand</h2>
+<div class="status">
+  <div class="card"><b>Application</b><span class="chip c-green">Running</span><p style="margin-top:6px">Web app and background worker both up. Health check returns <code>ok</code>. 29 of 29 browser checks and 26 of 26 Phase 1 acceptance checks pass. Code is on GitHub at <code>moeedmangla-ops/tab-pms</code>.</p></div>
+  <div class="card"><b>Data</b><span class="chip c-blue">Demo</span><p style="margin-top:6px">20 demo clients, 270 generated obligations, 5 leads, 12 users. Your real client list is not loaded yet (section 6).</p></div>
+  <div class="card"><b>Microsoft 365 — email and sign-in</b><span class="chip c-amber">Needs an admin step</span><p style="margin-top:6px">Your own Microsoft account is connected to Claude with Mail.Send and shared-mailbox rights, so the tenant is confirmed. The <em>application</em> still needs its own app registration before it can send reminders or offer "Sign in with Microsoft" (section 9).</p></div>
+  <div class="card"><b>Outbound email</b><span class="chip c-grey">Paused</span><p style="margin-top:6px">Deliberate. Nothing reaches clients or staff until an administrator turns it on after a test run (section 8).</p></div>
+</div>
+
+<h2 id="open">2. Opening the app</h2>
+<p>Right now the app runs inside this Claude session. Open the preview pane for <code>tab-pms</code> (port 3000), or the address your IT team gives you once it is hosted. The permanent home is decided in the deployment runbook (<code>docs/RUNBOOK.md</code> in the repository); the default target is Azure UAE North so client data stays in the UAE.</p>
+<h3>First sign-in</h3>
+<ol>
+  <li>Enter your email and password. Demo accounts all use the password <code>TabDemo!2026</code>.</li>
+  <li>The app shows a QR code. Open <strong>Microsoft Authenticator</strong> (or Google Authenticator) on your phone, add an account, scan the code, and type the 6-digit number. Two-factor is mandatory for every user and this step happens once.</li>
+  <li>From then on: email, password, then the current 6-digit code.</li>
+</ol>
+<p>Five wrong attempts lock the account for 15 minutes. Sessions last 8 hours. An administrator can reset someone's two-factor from Settings → Users.</p>
+<div class="tbl"><table>
+  <tr><th>Demo account</th><th>Role</th><th>Use it to see</th></tr>
+  <tr><td><code>mp@tabconsultants.test</code></td><td>Managing Partner</td><td>Everything: whole-firm dashboard, settings, audit trail</td></tr>
+  <tr><td><code>partner.tax@</code> · <code>partner.audit@</code></td><td>Partner</td><td>All clients, own portfolio escalations, weekly summary</td></tr>
+  <tr><td><code>manager.tax@</code> · <code>manager.audit@</code></td><td>Manager</td><td>"My team's work", escalations for the team</td></tr>
+  <tr><td><code>senior@</code> · <code>accountant@</code> · <code>taxconsultant@</code></td><td>Preparers</td><td>Only assigned clients and obligations</td></tr>
+  <tr><td><code>audit@</code></td><td>Audit Staff</td><td>Assigned clients (view), audit-type obligations only</td></tr>
+  <tr><td><code>bd@</code></td><td>Business Development</td><td>Leads only; no client or deadline access</td></tr>
+  <tr><td><code>readonly@</code></td><td>Read-only</td><td>Everything visible, nothing editable</td></tr>
+  <tr><td><code>admin@tabconsultants.test</code></td><td>Administrator</td><td>Break-glass account; settings, users, jobs</td></tr>
+</table></div>
+
+<h2 id="roles">3. Who does what</h2>
+<p>Access is enforced on the server for every request, so a role sees only the rows it is allowed to. "Assigned" means you are the partner, manager or preparer on one of the client's active services, or the preparer or reviewer on one of its obligations. A manager's "team" is everyone whose <em>Reports to</em> is set to them in Settings → Users.</p>
+<div class="tbl"><table>
+  <tr><th>Role</th><th>Clients</th><th>Obligations</th><th>Leads</th><th>Settings</th></tr>
+  <tr><td class="who">Managing Partner</td><td>All, edit</td><td>All, edit</td><td>All, edit, reassign</td><td>All</td></tr>
+  <tr><td class="who">Partner</td><td>All, edit</td><td>All, edit</td><td>All view; own edit</td><td>View</td></tr>
+  <tr><td class="who">Manager</td><td>Assigned, edit</td><td>Team, edit</td><td>Own</td><td>None</td></tr>
+  <tr><td class="who">Senior / Accountant / Tax Consultant</td><td>Assigned, edit</td><td>Assigned, edit</td><td>Own</td><td>None</td></tr>
+  <tr><td class="who">Audit Staff</td><td>Assigned, view</td><td>Assigned audit items, edit</td><td>Own</td><td>None</td></tr>
+  <tr><td class="who">Business Development</td><td>None</td><td>None</td><td>All, edit, convert</td><td>None</td></tr>
+  <tr><td class="who">Administrator</td><td>All, edit</td><td>All, edit</td><td>All</td><td>All</td></tr>
+  <tr><td class="who">Read-only</td><td>View</td><td>View</td><td>View</td><td>None</td></tr>
+</table></div>
+
+<h2 id="day">4. The working day</h2>
+<h3>Staff: start at My work</h3>
+<p><strong>My work</strong> is one dated list of everything waiting on you: obligations where you are preparer or reviewer (sorted by <em>your</em> deadline, not the statutory one), open tasks, and leads whose next action is due. Red means overdue, amber means due within a week. Work from the top.</p>
+<p>At 08:00 Gulf time a digest email lists the same things: overdue, due this week, waiting on your review, leads needing action. If you are marked on leave in Settings → Users, your reminders go to your manager instead.</p>
+<h3>Managers: Obligations → My team's work</h3>
+<p>Filter by preparer, status or due date. Use the checkboxes and the <strong>Bulk</strong> bar to reassign work or send a document request to several clients at once. You receive an <strong>escalation email</strong> when any obligation in your team passes its internal preparation deadline without being Ready for Submission.</p>
+<h3>Partners: the Dashboard</h3>
+<p>Exceptions come first: overdue, due this week with no preparer, unassigned, dates needing review, leads with no next action, clients missing deadline data. Every figure is a live count and clicking it opens the list with exactly that count. Every Monday morning a partner summary email covers your portfolio for the next 14 days. You receive a <strong>partner escalation</strong> when an obligation is still open three working days before its statutory date.</p>
+
+<h2 id="obligations">5. Working a deadline</h2>
+<p>Every deadline in the firm is an <strong>obligation</strong>: a VAT return for a tax period, a Corporate Tax return for a financial year, a trade licence renewal, an engagement letter renewal. They are generated automatically every night, 18 months ahead, from the client's year-end, VAT frequency and licence expiry. You do not create routine ones by hand.</p>
+<h3>Four dates on every obligation</h3>
+<div class="tbl"><table>
+  <tr><th>Date</th><th>Meaning</th><th>Default</th></tr>
+  <tr><td><strong>Statutory due date</strong></td><td>What the law requires, derived from a named rule version. Never moved.</td><td>VAT: 28 days after period end · CT: 9 months after period end</td></tr>
+  <tr><td><strong>Internal target</strong></td><td>The statutory date moved back to the previous working day if it falls on a Saturday, Sunday or UAE public holiday. Shown with <code>*</code> in lists.</td><td>—</td></tr>
+  <tr><td><strong>Review deadline</strong></td><td>When the reviewer should have it.</td><td>5 working days before the target</td></tr>
+  <tr><td><strong>Preparation deadline</strong></td><td>When the preparer should be finished. Missing it triggers the manager escalation.</td><td>10 working days before the target</td></tr>
+</table></div>
+<div class="note">The system derives dates from configurable rules; it does not give statutory advice. Each rule says which version produced a date, and a qualified person confirms the rules in Settings → Deadline rules. The firm, not the software, is responsible for the filing date.</div>
+<h3>The status workflow</h3>
+<div class="flow"><span>Upcoming</span><i>→</i><span>Documents Requested</span><i>→</i><span>Documents Received</span><i>→</i><span>In Preparation</span><i>→</i><span>Pending Internal Review</span><i>→</i><span>Pending Client Approval</span><i>→</i><span>Ready for Submission</span><i>→</i><span>Submitted</span><i>→</i><span>Payment Pending</span><i>→</i><span>Completed</span></div>
+<ul>
+  <li>Change status straight from the list with the dropdown in the Status column, or open the obligation for a note.</li>
+  <li><strong>Submitted</strong> needs the FTA submission reference. The database refuses it without one.</li>
+  <li><strong>Completed</strong> needs payment confirmed, or a waiver with a reason (for example a nil return).</li>
+  <li><strong>On Hold</strong> needs a reason and stops reminders. <strong>Overdue</strong> is never set by hand; it is worked out from the dates.</li>
+  <li>Every change records who, when and the note. The history is on the obligation and on the client's Audit Trail tab.</li>
+</ul>
+<h3>Colour code</h3>
+<p><span class="chip c-red">Red</span> overdue · <span class="chip c-amber">Amber</span> due within 7 days · <span class="chip c-blue">Blue</span> in progress · <span class="chip c-green">Green</span> completed · <span class="chip c-grey">Grey</span> on hold</p>
+<h3>Four views of the same list</h3>
+<p><strong>List</strong> for daily work and bulk actions · <strong>Kanban</strong> by status · <strong>Calendar</strong> by statutory month · <strong>Year grid</strong> with one row per client and one cell per month, which is the view for spotting a crunch.</p>
+<h3>When dates are flagged "Review"</h3>
+<p>If a client's year-end or VAT frequency changes, the system does not rewrite future obligations. It flags them amber with the reason. Open one and choose <strong>Keep these dates</strong> or <strong>Replace with regenerated obligations</strong>. Filed obligations are never touched.</p>
+
+<h2 id="clients">6. Clients</h2>
+<h3>Loading the firm's client list</h3>
+<ol>
+  <li>Export the current list to Excel with one row per legal entity. Useful columns: client code, legal name, trade name, entity type, licence number and authority, licence expiry, emirate, financial year-end (as <code>31/03</code> or a date), VAT TRN, VAT frequency, first day of any VAT period, CT registration number, primary contact name, email and mobile.</li>
+  <li>Clients → <strong>Import</strong> → choose the file. Match each of your columns to a field.</li>
+  <li>Read the <strong>dry run</strong>. It lists every row that will be rejected and why: duplicate TRN or licence number (in the file or already in the system), bad dates, missing code or name. Nothing is saved yet.</li>
+  <li>Fix the spreadsheet or accept the rejections, then <strong>Import</strong>. Obligations generate immediately for every imported client. 1,500 rows take under a minute.</li>
+</ol>
+<div class="note">A client with no financial year-end gets <strong>no Corporate Tax deadlines</strong>, and one with no VAT period start gets no VAT deadlines. The system never guesses December or a calendar quarter. These clients appear under <strong>Missing data</strong> in the menu until fixed.</div>
+<h3>Everyday client work</h3>
+<ul>
+  <li><strong>Search</strong> finds a client by name, code, VAT TRN, CT number, licence number, or a contact's email or mobile.</li>
+  <li>The profile has nine tabs: Overview, Contacts, Services, Obligations, Documents (Phase 4, not yet built), Communication, Tasks, Notes, Audit Trail.</li>
+  <li><strong>Services</strong> are what drives assignment: adding a VAT service with a preparer and manager assigns that client's VAT obligations to them. Add a contract end date and an engagement-renewal obligation is generated.</li>
+  <li><strong>Communication</strong> is the unified timeline: logged calls and meetings, status changes, reminders sent, and (once connected) Outlook emails matched by contact address.</li>
+  <li><strong>Bulk reassign</strong> on the client list moves a whole portfolio from one manager, preparer or partner to another, including their open obligations, when someone leaves or changes team.</li>
+  <li><strong>Stop work</strong> (partners, collections roles) puts a red banner on the client and every one of its obligations.</li>
+  <li>Clients are archived, never deleted. <strong>Export view to Excel</strong> downloads whatever the current filters show.</li>
+</ul>
+
+<h2 id="leads">7. Enquiries and leads</h2>
+<p>Every lead must have an <strong>owner</strong> and a <strong>next-action date</strong>; the form will not save without them. A lead whose next action has passed appears under <strong>Needs attention</strong> on the dashboard and its owner gets an email each working day until it is updated.</p>
+<div class="flow"><span>New</span><i>→</i><span>Contacted</span><i>→</i><span>Qualified</span><i>→</i><span>Proposal Sent</span><i>→</i><span>Negotiation</span><i>→</i><span>Won</span><i>/</i><span>Lost (reason required)</span></div>
+<ul>
+  <li><strong>Log contact</strong> on the lead records the call or email and sets the next action. The first logged contact stops the <strong>response-time clock</strong>, which the source report shows per source.</li>
+  <li><strong>Convert to client</strong> on a won lead creates the client, carries over the contact and notes, creates the services you enter, and generates obligations. You are then taken to the client form to add the year-end, VAT and licence details.</li>
+  <li>The pipeline tiles show count, value and weighted value per stage. The source report shows conversion and average fee per source.</li>
+</ul>
+<h3>Website form</h3>
+<p>Your website, Zapier or Power Automate can post enquiries straight in. They arrive assigned to the Business Development person with the fewest open leads, with "First contact" due the next working day. Your web developer needs the address and secret from the administrator:</p>
+<pre><code>POST https://&lt;your-app-address&gt;/api/connectors/lead-webhook
+Header: x-webhook-secret: &lt;LEAD_WEBHOOK_SECRET&gt;
+Body (JSON): name, company, email, phone, service, message</code></pre>
+
+<h2 id="email">8. Reminders and email</h2>
+<p>Every hour the worker finds obligations that need a reminder and sends them. Each reminder is recorded once; re-running the job can never send the same email twice. Nothing is sent on a Saturday, Sunday or public holiday; a reminder that would land on one is sent the previous working day. All reminders are listed at the bottom of the obligation they belong to.</p>
+<div class="tbl"><table>
+  <tr><th>Who</th><th>When (defaults, editable in Settings → Reminder rules)</th></tr>
+  <tr><td>Preparer</td><td>30, 15, 7, 3, 1 days before the statutory date, on the day, then every 2 days while overdue</td></tr>
+  <tr><td>Reviewer</td><td>7, 3, 1 days before</td></tr>
+  <tr><td>Manager escalation</td><td>Once, when the internal preparation deadline passes without Ready for Submission</td></tr>
+  <tr><td>Partner escalation</td><td>Once, 3 working days before the statutory date if still not Submitted</td></tr>
+  <tr><td>Client: documents needed</td><td>VAT 21 and 14 days before; CT 90, 60, 30 days before (while Upcoming or Documents Requested)</td></tr>
+  <tr><td>Client: approval</td><td>5, 3, 1 days before, while Pending Client Approval</td></tr>
+  <tr><td>Client: tax payment</td><td>3, 1, 0 days before, while Payment Pending</td></tr>
+  <tr><td>Everyone</td><td>Daily digest 08:00 GST; partners also a Monday summary</td></tr>
+</table></div>
+<h3>Two safety switches (Settings → Email)</h3>
+<ul>
+  <li><strong>Pause all outbound email</strong>: on by default. Reminders are still worked out and logged as "skipped paused" but nothing is sent. They are not re-sent when you un-pause.</li>
+  <li><strong>Test mode</strong>: redirects every email to one address with the real recipient in the subject. Use it for the first week.</li>
+</ul>
+<p>The banner at the top of every screen shows when email is paused or in test mode, and turns red if a background job failed in the last 24 hours.</p>
+
+<h2 id="m365">9. Microsoft 365 connection</h2>
+<p>Two different Microsoft connections are involved, and only one is done.</p>
+<div class="tbl"><table>
+  <tr><th>Connection</th><th>What it is for</th><th>Status</th></tr>
+  <tr><td>Your account → Claude</td><td>Let Claude read your mailbox and tenant while building. Confirmed: <code>tabconsultantsllc.com</code>, rights include Mail.Send and shared mailboxes.</td><td><span class="chip c-green">Connected</span></td></tr>
+  <tr><td>The application → Microsoft Graph</td><td>Lets the <em>system</em> send reminders from a shared mailbox and attach Outlook emails to client timelines, unattended, 24 hours a day. Needs its own app registration, which only a Microsoft 365 global administrator can create.</td><td><span class="chip c-amber">Not yet</span></td></tr>
+  <tr><td>The application → Microsoft Entra sign-in</td><td>"Sign in with Microsoft" for staff, relying on Entra's own MFA.</td><td><span class="chip c-amber">Not yet</span></td></tr>
+</table></div>
+<p>A people search of your tenant did not surface a <code>compliance@</code> shared mailbox, so one probably needs creating. The full admin steps are in <code>docs/CONNECTORS.md</code> in the repository; in short:</p>
+<ol>
+  <li>In the Microsoft 365 admin centre, create a shared mailbox, for example <code>compliance@tabconsultantsllc.com</code>.</li>
+  <li>In Entra, register an application <em>TAB PMS – Mail</em> with application permissions <code>Mail.Send</code> and <code>Mail.Read</code>, grant admin consent, create a client secret.</li>
+  <li>Restrict that application to the compliance mailbox with an Exchange application access policy, so it cannot touch any other mailbox.</li>
+  <li>Give the tenant ID, client ID and secret to whoever hosts the app; they go into the server's environment variables, never into the app itself.</li>
+  <li>In the app: Settings → Email → sender mailbox, keep email paused, set test mode to your own address, run <strong>Settings → Jobs → send-reminders</strong>, and check what arrives. Then clear test mode and un-pause.</li>
+  <li>Optionally register a second application for sign-in, add the callback address, and require MFA for it with Conditional Access.</li>
+</ol>
+<div class="ok">Until this is done the system still works fully: deadlines generate, statuses and history are kept, the dashboard and work queues are live. Only email leaves the building later.</div>
+
+<h2 id="settings">10. Settings to review before real use</h2>
+<div class="tbl"><table>
+  <tr><th>Settings tab</th><th>What to do</th></tr>
+  <tr><td>Deadline rules</td><td>Have a qualified tax person read the four seeded rules and press <strong>Confirm</strong> on each. To change a rule later, save a <em>new version</em> with an effective-from date; existing obligations keep the version that produced them.</td></tr>
+  <tr><td>Holidays</td><td>2026–2027 UAE holidays are loaded. Lunar dates are marked "estimate": confirm or move them when the government announces them. Add any newly announced day.</td></tr>
+  <tr><td>Users and roles</td><td>Add each staff member with the right role and <strong>Reports to</strong>. Leave the password blank for people who will use Microsoft sign-in. Record leave dates so reminders re-route.</td></tr>
+  <tr><td>Reminder rules</td><td>Adjust offsets or switch a track off. Client-facing tracks are worth reviewing with a partner before un-pausing email.</td></tr>
+  <tr><td>Email templates</td><td>Edit wording and merge fields without a developer.</td></tr>
+  <tr><td>Email</td><td>Sender mailbox, pause switch, test mode, digest hour, firm TRN.</td></tr>
+  <tr><td>Connectors</td><td>Shows which connections are configured and a log of every call.</td></tr>
+  <tr><td>Jobs</td><td>Run any job now; see every run with counts and errors.</td></tr>
+</table></div>
+
+<h2 id="golive">11. Go-live checklist</h2>
+<ul class="check">
+  <li>Hosting region and provider chosen; app, worker and database deployed (<code>docs/RUNBOOK.md</code>).</li>
+  <li>Production seeded with <code>SEED_DEMO=false</code>; demo accounts not present.</li>
+  <li>Deadline rules confirmed by a qualified person; holidays reviewed.</li>
+  <li>All staff added with roles, managers and two-factor enrolled.</li>
+  <li>Client list imported; <strong>Missing data</strong> report empty or understood.</li>
+  <li>Services added per client so every obligation has a preparer (dashboard "Unassigned" at zero).</li>
+  <li>Microsoft Graph app registered; test-mode email run checked by a partner.</li>
+  <li>Client-facing reminder wording approved; email un-paused.</li>
+  <li>Website form pointed at the lead webhook.</li>
+  <li>Uptime monitor on <code>/api/health</code>; daily backups on, restore tested once.</li>
+  <li>Used daily for a week before Phase 3 (invoicing and collections) is commissioned.</li>
+</ul>
+
+<h2 id="help">12. When something looks wrong</h2>
+<div class="tbl"><table>
+  <tr><th>Symptom</th><th>Where to look</th></tr>
+  <tr><td>A client has no obligations</td><td>Client → Overview: year-end, VAT frequency and period start, licence expiry. Then <strong>Missing data</strong> in the menu.</td></tr>
+  <tr><td>Obligations exist but nobody is assigned</td><td>Client → Services: add the service with a preparer and manager. Or use Bulk → Assign preparer on the obligations list.</td></tr>
+  <tr><td>No reminder arrived</td><td>Banner: is email paused or in test mode? Obligation page → "Reminders sent" table shows every attempt and its status. Settings → Jobs shows whether <code>send-reminders</code> ran.</td></tr>
+  <tr><td>Red "job failed" banner</td><td>Settings → Jobs → the failed row's detail. Administrators and the Managing Partner also receive an email.</td></tr>
+  <tr><td>Cannot change a status</td><td>The message says what is missing: a submission reference, a payment confirmation or waiver, an On Hold reason.</td></tr>
+  <tr><td>Someone sees clients they should not, or cannot see theirs</td><td>Settings → Users: role and Reports to. Client → Services: who is assigned.</td></tr>
+  <tr><td>"This page could not be shown"</td><td>Your role does not have access to that screen. Ask an administrator.</td></tr>
+  <tr><td>Who changed what</td><td>Audit trail (administrators and partners), filterable by user, record and date, exportable to CSV.</td></tr>
+</table></div>
+
+<footer>Repository: <code>moeedmangla-ops/tab-pms</code> · Specification: <code>BUILD_SPEC.md</code> (rev 2) · What is built and what is not: <code>SESSION_REPORT.md</code> · Defaults chosen: <code>ASSUMPTIONS.md</code> · Connector setup: <code>docs/CONNECTORS.md</code> · Deployment: <code>docs/RUNBOOK.md</code></footer>
+</main>
+</div>

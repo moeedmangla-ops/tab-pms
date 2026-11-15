@@ -1,4 +1,8 @@
-# Session report — 13 Nov 2026
+# Session report — 15 Nov 2026 (updated)
+
+**15 Nov:** container restarted; database, web app and worker brought back up. Health `ok` once the reminder job ran. Browser suite 29/29 against the live app. Operating guide added (`docs/operating-guide.html`). Microsoft 365: the user's own account is connected to Claude (Mail.Send, Mail.Read.Shared, People.Read confirmed; tenant `tabconsultantsllc.com`); no `compliance@` shared mailbox surfaced in a people search; the application-level Graph app registration is still an admin step.
+
+## 13 Nov
 
 Scope delivered: **Foundation + Phase 1 (clients, deadlines, reminders)** in full, plus the **CRM core of Phase 2** (lead pipeline, communication log and timeline, Outlook sync connector, basic tasks, personal work queue), with Microsoft 365 as the connector layer. Phases 3 and 4 are schema-only.
 
