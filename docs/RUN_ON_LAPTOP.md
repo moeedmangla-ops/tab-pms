@@ -1,5 +1,17 @@
 # Running on a laptop
 
+**Easiest way (Windows):** follow `docs/laptop-guide.html`. After installing Node.js, PostgreSQL and Git and cloning the repo, double-click the files in the `windows` folder:
+
+| File | What it does |
+|---|---|
+| `setup.bat` | One-time: creates the database, writes `.env`, installs, builds (asks demo or clean) |
+| `start.bat` / `stop.bat` | Start or stop the web app and the reminder worker |
+| `autostart.bat` | Start at Windows sign-in, back up daily at 13:00 to OneDrive, no sleep on mains power |
+| `backup.bat` / `restore.bat` | Back up now / restore from a OneDrive backup |
+| `update.bat` | Back up, pull the latest version from GitHub, rebuild |
+
+The manual steps below do the same by hand.
+
 Good for a demo, a trial with a few colleagues, or a first week of testing. Not suitable as the firm's live system (see the end of this page).
 
 ## Install once (Windows; Mac notes in brackets)

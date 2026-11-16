@@ -1,0 +1,206 @@
+<title>TAB PMS on Your Laptop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: one reading column of numbered setup steps, each step a card with the exact action; reference tables after. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1d2430; --muted: #5b6573; --line: #dfe4ea;
+  --brand: #43c6ae; --navy: #0c1e31; --accent: #159bb5; --accent-soft: #e3f3f6; --code-fg: #d9f2ee;
+  --warn: #8a5300; --warn-bg: #fff4e0; --good: #1e7a4c; --good-bg: #e6f5ec; --bad: #b3261e; --bad-bg: #fdecea;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1620; --surface: #15202c; --fg: #e6eaf0; --muted: #9aa6b4; --line: #26333f;
+  --brand: #4fd3bb; --navy: #08121c; --accent: #4cc0d6; --accent-soft: #10303a; --code-fg: #c9ece6;
+  --warn: #f0b64a; --warn-bg: #3a2b0e; --good: #6fd39a; --good-bg: #12301e; --bad: #ff8a80; --bad-bg: #3b1a17; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1620; --surface: #15202c; --fg: #e6eaf0; --muted: #9aa6b4; --line: #26333f;
+  --brand: #4fd3bb; --navy: #08121c; --accent: #4cc0d6; --accent-soft: #10303a; --code-fg: #c9ece6;
+  --warn: #f0b64a; --warn-bg: #3a2b0e; --good: #6fd39a; --good-bg: #12301e; --bad: #ff8a80; --bad-bg: #3b1a17; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+main { max-width: 820px; margin: 0 auto }
+a { color: var(--accent) }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0 }
+h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.01em }
+h2 { font-size: 21px; margin-block: 44px 14px }
+h3 { font-size: 16px; margin-block: 0 8px }
+p { margin: 0 0 10px } ul, ol { margin: 0 0 10px; padding-left: 22px } li { margin-bottom: 5px }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px }
+.lede { color: var(--muted); font-size: 16px; margin-top: 10px; max-width: 64ch }
+code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere }
+.cmd { display: flex; align-items: stretch; background: var(--navy); border-radius: 6px; margin: 8px 0 12px; overflow: hidden }
+.cmd pre { flex: 1; min-width: 0; margin: 0; padding: 10px 12px; font: 13px/1.5 var(--mono); color: var(--code-fg); overflow-x: auto; white-space: pre }
+.cmd button { flex: none; border: 0; border-left: 1px solid rgba(255,255,255,.12); background: transparent; color: var(--code-fg); font: 600 12px var(--body); padding: 0 14px; cursor: pointer }
+.cmd button:hover { background: rgba(255,255,255,.08) } .cmd button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px }
+.steps { display: grid; gap: 14px; counter-reset: s }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px 8px; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 0 14px }
+.step::before { counter-increment: s; content: counter(s); grid-row: 1 / span 9; width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #fff; font: 600 15px var(--display); display: grid; place-items: center }
+:root[data-theme="dark"] .step::before { background: var(--brand); color: #08121c }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .step::before { background: var(--brand); color: #08121c } }
+.step > * { grid-column: 2 }
+.file { font: 600 13px var(--mono); color: var(--fg); background: var(--accent-soft); border: 1px solid var(--line); padding: 1px 7px; border-radius: 4px; white-space: nowrap }
+.note { border-left: 3px solid var(--warn); background: var(--warn-bg); color: var(--warn); padding: 10px 12px; border-radius: 0 4px 4px 0; margin: 10px 0 }
+.ok { border-left: 3px solid var(--good); background: var(--good-bg); color: var(--good); padding: 10px 12px; border-radius: 0 4px 4px 0; margin: 10px 0 }
+.tbl { overflow-x: auto; margin: 0 0 14px }
+table { width: 100%; border-collapse: collapse; font-size: 14px }
+th { text-align: left; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; font-size: 12.5px }
+td { border-bottom: 1px solid var(--line); padding: 8px; vertical-align: top }
+.prompts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin: 8px 0 12px; font-size: 14px }
+.prompts div { padding: 7px 10px; border-bottom: 1px solid var(--line) } .prompts div:nth-child(odd) { color: var(--muted); background: var(--bg) }
+.prompts div:nth-last-child(-n+2) { border-bottom: 0 }
+@media (max-width: 560px) { .prompts { grid-template-columns: 1fr } .prompts div:nth-child(odd) { border-bottom: 0; padding-bottom: 0 } }
+.limits { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 12px }
+.limits div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; font-size: 14px }
+.limits b { display: block; font-family: var(--display); margin-bottom: 3px }
+footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 12px }
+@media (prefers-reduced-motion: no-preference) { .cmd button { transition: background .15s } }
+</style>
+
+<main>
+<div class="eyebrow">TAB Consultants · Practice Management</div>
+<h1>Running TAB PMS on your laptop</h1>
+<p class="lede">Set it up once in about 30 minutes, then it starts by itself every morning and backs itself up to OneDrive. Written for Windows 10 or 11. No programming needed: you install three programs and double-click a few files.</p>
+
+<h2>What you need</h2>
+<ul>
+  <li>A Windows 10 or 11 laptop with at least 8 GB of memory and 5 GB of free space.</li>
+  <li>Administrator rights on the laptop (to install programs).</li>
+  <li>Your GitHub sign-in (the system's code is in your private repository <code>moeedmangla-ops/tab-pms</code>).</li>
+  <li>OneDrive signed in to your company account, for the daily backups.</li>
+</ul>
+
+<h2>One-time setup</h2>
+<div class="steps">
+
+<section class="step">
+  <h3>Install three programs</h3>
+  <p>Download and install each with the default options.</p>
+  <ul>
+    <li><strong>Node.js 22 LTS</strong>: <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>. Choose the LTS button.</li>
+    <li><strong>PostgreSQL 16</strong>: <a href="https://www.postgresql.org/download/windows/" target="_blank" rel="noopener">postgresql.org/download/windows</a>, then "Download the installer". Keep port <code>5432</code>. When it asks for a password for the database superuser, choose one and <strong>write it down</strong>; you need it once in step 3. At the end, untick "Stack Builder".</li>
+    <li><strong>Git</strong>: <a href="https://git-scm.com/download/win" target="_blank" rel="noopener">git-scm.com/download/win</a>.</li>
+  </ul>
+  <p>Restart the laptop afterwards.</p>
+</section>
+
+<section class="step">
+  <h3>Download the system</h3>
+  <p>Open the Start menu, type <strong>PowerShell</strong>, and open it. Paste these two lines (right-click pastes), pressing Enter after each:</p>
+  <div class="cmd"><pre id="c1">cd $HOME\Documents</pre><button type="button" data-copy="c1">Copy</button></div>
+  <div class="cmd"><pre id="c2">git clone https://github.com/moeedmangla-ops/tab-pms</pre><button type="button" data-copy="c2">Copy</button></div>
+  <p>A browser window asks you to sign in to GitHub; approve it. You now have a folder <span class="file">Documents\tab-pms</span>. Everything below happens inside its <span class="file">windows</span> folder.</p>
+</section>
+
+<section class="step">
+  <h3>Run the setup</h3>
+  <p>In File Explorer open <span class="file">Documents\tab-pms\windows</span> and double-click <span class="file">setup.bat</span>. If Windows shows "Windows protected your PC", click <em>More info</em>, then <em>Run anyway</em>. It asks a few questions:</p>
+  <div class="prompts">
+    <div>Password for the 'postgres' user</div><div>The one you wrote down in step 1</div>
+    <div>Load the 20 demo clients?</div><div><strong>Y</strong> to look around with sample data, <strong>N</strong> to start clean for real work</div>
+    <div>Your email address (if N)</div><div>You become the administrator</div>
+    <div>Administrator password (if N)</div><div>12 characters or more</div>
+  </div>
+  <p>It then installs and builds for 5 to 10 minutes. It's finished when you see <strong>Setup complete</strong> in green.</p>
+</section>
+
+<section class="step">
+  <h3>Start it and sign in</h3>
+  <p>Double-click <span class="file">start.bat</span>. Two small windows open in the taskbar (the web app and the reminders), then your browser opens <code>http://localhost:3000</code>.</p>
+  <ul>
+    <li>Demo: sign in as <code>mp@tabconsultants.test</code>, password <code>TabDemo!2026</code>.</li>
+    <li>Clean start: your email and the password you chose.</li>
+  </ul>
+  <p>The first time, a QR code appears. Open <strong>Microsoft Authenticator</strong> on your phone, tap +, add an account, scan it, and type the 6-digit code. Bookmark the page.</p>
+</section>
+
+<section class="step">
+  <h3>Make it automatic</h3>
+  <p>Double-click <span class="file">autostart.bat</span> once. From then on:</p>
+  <ul>
+    <li>TAB PMS starts by itself every time you sign in to Windows.</li>
+    <li>The database is backed up every day at 13:00 to <span class="file">OneDrive\TAB-PMS-Backups</span>, and the last 30 days are kept. If the laptop was off at 13:00, the backup runs when it next starts.</li>
+    <li>The laptop no longer goes to sleep while plugged in, so reminders keep running.</li>
+  </ul>
+  <div class="ok">That's the setup done. The operating guide explains how to use the system day to day: roles, deadlines, clients and leads.</div>
+</section>
+</div>
+
+<h2>Every day</h2>
+<div class="tbl"><table>
+  <tr><th>To</th><th>Do this</th></tr>
+  <tr><td>Open the system</td><td>Your bookmark, or <code>http://localhost:3000</code></td></tr>
+  <tr><td>Keep it running</td><td>Leave the laptop on and plugged in. Don't close the two "TAB PMS … (keep open)" windows in the taskbar.</td></tr>
+  <tr><td>Stop it</td><td>Double-click <span class="file">stop.bat</span></td></tr>
+  <tr><td>Start it again</td><td>Double-click <span class="file">start.bat</span>, or just sign out and back in to Windows</td></tr>
+  <tr><td>Back up right now</td><td>Double-click <span class="file">backup.bat</span>, for example before a big import</td></tr>
+  <tr><td>Install a new version</td><td>Double-click <span class="file">update.bat</span>. It backs up first, downloads the update, and rebuilds. Then run <span class="file">start.bat</span>.</td></tr>
+</table></div>
+
+<h2>Letting colleagues in the office use it</h2>
+<ol>
+  <li>On your laptop, open PowerShell and type <code>ipconfig</code>. Note the <strong>IPv4 Address</strong>, for example <code>192.168.1.25</code>.</li>
+  <li>The first time a colleague connects, Windows asks whether to allow Node.js on the network. Choose <strong>Private networks</strong> only.</li>
+  <li>Give colleagues the address <code>http://192.168.1.25:3000</code>. They must be on the office Wi-Fi.</li>
+  <li>Add each person in the system under <strong>Settings → Users</strong> with the right role. Each sets up their own two-factor at first sign-in.</li>
+</ol>
+<div class="note">The laptop's address can change when it reconnects to Wi-Fi. If colleagues suddenly can't connect, run <code>ipconfig</code> again. Your IT person can fix the address permanently with a "DHCP reservation" on the office router.</div>
+
+<h2>Backups and restoring</h2>
+<p>Backups land in <span class="file">OneDrive\TAB-PMS-Backups</span> as files named <code>tab_pms_2026-11-16_1300.dump</code>. Each one holds everything: clients, deadlines, history, users, settings. Because they're in OneDrive they are also off the laptop, which is the point.</p>
+<p><strong>To restore</strong> (laptop lost, data entered by mistake, or moving to a new machine):</p>
+<ol>
+  <li>On the new or repaired laptop, do steps 1 to 3 of the setup.</li>
+  <li>Double-click <span class="file">stop.bat</span>, then <span class="file">restore.bat</span>. Pick a backup from the list and type <code>RESTORE</code> to confirm.</li>
+  <li>Double-click <span class="file">start.bat</span>. Everyone signs in as before.</li>
+</ol>
+<p>Moving later to an office PC or a hosted server works the same way: one backup file carries everything.</p>
+
+<h2>Switching from the demo to real use</h2>
+<p>If you installed with demo data and are now ready for real clients:</p>
+<ol>
+  <li>Double-click <span class="file">stop.bat</span>.</li>
+  <li>Open <strong>SQL Shell (psql)</strong> from the Start menu, press Enter through the prompts, type your postgres password, then type <code>DROP DATABASE tab_pms;</code> and press Enter.</li>
+  <li>Run <span class="file">setup.bat</span> again and answer <strong>N</strong> to the demo question.</li>
+  <li>Sign in, then import your client list from <strong>Clients → Import</strong>.</li>
+</ol>
+
+<h2>Email reminders</h2>
+<p>Out of the box, the laptop version records every reminder inside the system but does not send email. Each obligation lists the reminders it would have sent. To send real emails, your Microsoft 365 administrator registers the application (steps in <span class="file">docs\CONNECTORS.md</span>). You then paste the three values they give you into <span class="file">tab-pms\.env</span> in Notepad, delete the line <code>MAIL_TRANSPORT="console"</code>, and run <span class="file">stop.bat</span> then <span class="file">start.bat</span>. In the system, go to Settings → Email, set the sender mailbox and a test address, check a test run, then un-pause.</p>
+
+<h2>If something goes wrong</h2>
+<div class="tbl"><table>
+  <tr><th>What you see</th><th>What to do</th></tr>
+  <tr><td>setup.bat: "Node.js is not installed" or "PostgreSQL was not found"</td><td>Install it (step 1), restart the laptop, run setup.bat again.</td></tr>
+  <tr><td>setup.bat: "Could not sign in to PostgreSQL"</td><td>The postgres password is wrong. If you've forgotten it, uninstall and reinstall PostgreSQL with a new password.</td></tr>
+  <tr><td>Browser says "This site can't be reached"</td><td>The system isn't running. Double-click start.bat and wait 15 seconds.</td></tr>
+  <tr><td>"Can't reach database server"</td><td>PostgreSQL stopped. Start menu → <strong>Services</strong> → find <code>postgresql-x64-16</code> → Start. Set its Startup type to Automatic.</td></tr>
+  <tr><td>Wrong password too many times</td><td>Wait 15 minutes, or have the administrator reset it in Settings → Users.</td></tr>
+  <tr><td>New phone, lost authenticator</td><td>The administrator ticks <strong>reset 2FA</strong> for you in Settings → Users. You scan a new QR code at the next sign-in.</td></tr>
+  <tr><td>Port 3000 already in use</td><td>The system is probably already running. Run stop.bat, then start.bat.</td></tr>
+  <tr><td>Red "job failed" banner in the system</td><td>Settings → Jobs shows which job and why.</td></tr>
+</table></div>
+
+<h2>Know the limits</h2>
+<div class="limits">
+  <div><b>Laptop off = system off</b>No reminders, escalations or digests go out, and colleagues can't open it. Reminders up to 3 days late are sent when it comes back.</div>
+  <div><b>Office network only</b>Colleagues at home or at client sites can't reach it. Don't open the port to the internet: there is no HTTPS.</div>
+  <div><b>One copy of the data</b>The daily OneDrive backup is your protection. Check now and then that new files are appearing.</div>
+</div>
+<p style="margin-top:14px">When the team depends on it every day, move it to an always-on office PC or a hosted server. You use the same files and restore your latest backup there.</p>
+
+<footer>Files referred to are in <span class="file">Documents\tab-pms\windows</span>. Written for Windows; the scripts have not yet been run on a Windows machine, so send any error message you see and it will be fixed.</footer>
+</main>
+
+<script>
+document.querySelectorAll("button[data-copy]").forEach(function (b) {
+  b.addEventListener("click", function () {
+    var pre = document.getElementById(b.getAttribute("data-copy"));
+    var text = pre.textContent;
+    var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1500); };
+    var fallback = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected"; setTimeout(function () { b.textContent = "Copy"; }, 1500); };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>
