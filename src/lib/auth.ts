@@ -45,7 +45,7 @@ export async function createSession(userId: string) {
   jar.set(COOKIE, await sign({ sid: s.id }, sessionHours() * 60), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false",
     path: "/",
     expires: expiresAt,
   });
@@ -116,7 +116,7 @@ export async function verifyPassword(email: string, password: string): Promise<L
     });
     return generic;
   }
-  (await cookies()).set(PENDING, await sign({ uid: u.id }, 10), { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" });
+  (await cookies()).set(PENDING, await sign({ uid: u.id }, 10), { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false" });
   return { ok: true, next: u.totpEnabled ? "totp" : "enrol" };
 }
 

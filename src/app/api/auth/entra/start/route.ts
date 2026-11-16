@@ -8,6 +8,6 @@ export async function GET(req: Request) {
   const state = randomBytes(16).toString("hex");
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier).digest("base64url");
-  (await cookies()).set("tab_oidc", JSON.stringify({ state, verifier }), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 600, secure: process.env.NODE_ENV === "production" });
+  (await cookies()).set("tab_oidc", JSON.stringify({ state, verifier }), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 600, secure: process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false" });
   return NextResponse.redirect(authorizeUrl(state, challenge));
 }
